@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import Favicon from "./Favicon";
+import Icon from "./Icon";
 import { Button } from "./ui/button";
 import SpecialButton from "./SpecialButton";
 import { RxCross2, RxHamburgerMenu } from "react-icons/rx";
 import { useState } from "react";
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 
 export default function Navbar() {
   const [isMenuOpen, setMenuIsOpen] = useState(false);
@@ -15,7 +16,7 @@ export default function Navbar() {
         <div className="flex items-center space-x-3">
           <Link href="/">
             <Button variant="ghost" className="pl-1.5 pr-2.5">
-              <Favicon className="w-6 h-6" />
+              <Icon className="w-6 h-6" />
               <p className="font-mont font-bold text-lg mt-1 hidden md:block">
                 JobLink
               </p>
@@ -31,12 +32,20 @@ export default function Navbar() {
         <div className="flex items-center space-x-1">
           {/* <DarkLightToggle /> */}
           <div className="flex items-center space-x-3 md:space-x-5">
-            <NavLink link="/auth">Sign In</NavLink>
+            {/* <NavLink link="/login">Log In</NavLink> */}
+            <SignedOut>
+              <SignInButton />
+            </SignedOut>
             <Link href="/auth">
               <SpecialButton>Browse Jobs</SpecialButton>
             </Link>
+            <SignedIn>
+              <div className="md:pr-2 flex items-center justify-center">
+                <UserButton />
+              </div>
+            </SignedIn>
             <button
-              className=" md:hidden"
+              className="md:hidden"
               onClick={() => setMenuIsOpen(!isMenuOpen)}
             >
               <RxHamburgerMenu
