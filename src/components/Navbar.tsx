@@ -32,9 +32,11 @@ export default function Navbar() {
         <div className="flex items-center space-x-1">
           {/* <DarkLightToggle /> */}
           <div className="flex items-center space-x-3 md:space-x-5">
-            {/* <NavLink link="/login">Log In</NavLink> */}
             <SignedOut>
-              <SignInButton />
+              <NavLink link="/sign-in">Sign In</NavLink>
+              {/* <div className="text-sm text-foreground/70 hover:text-foreground transition whitespace-nowrap">
+                <SignInButton />
+              </div> */}
             </SignedOut>
             <Link href="/auth">
               <SpecialButton>Browse Jobs</SpecialButton>

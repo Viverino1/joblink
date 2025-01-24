@@ -4,6 +4,9 @@ import { NextResponse } from "next/server";
 const isPublicRoute = createRouteMatcher([
   "/",
   "/onboarding",
+  "/sign-in",
+  "/sign-up",
+  "/browse",
   "/splinecode/LandingHero.splinecode",
 ]);
 
