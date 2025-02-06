@@ -6,7 +6,7 @@ import { Button } from "./ui/button";
 import SpecialButton from "./SpecialButton";
 import { RxCross2, RxHamburgerMenu } from "react-icons/rx";
 import { useState } from "react";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
 export default function Navbar() {
   const [isMenuOpen, setMenuIsOpen] = useState(false);
@@ -30,15 +30,11 @@ export default function Navbar() {
           </div>
         </div>
         <div className="flex items-center space-x-1">
-          {/* <DarkLightToggle /> */}
           <div className="flex items-center space-x-3 md:space-x-5">
             <SignedOut>
               <NavLink link="/sign-in">Sign In</NavLink>
-              {/* <div className="text-sm text-foreground/70 hover:text-foreground transition whitespace-nowrap">
-                <SignInButton />
-              </div> */}
             </SignedOut>
-            <Link href="/auth">
+            <Link href="/browse">
               <SpecialButton>Browse Jobs</SpecialButton>
             </Link>
             <SignedIn>
@@ -60,7 +56,7 @@ export default function Navbar() {
       </nav>
       <div
         className={`fixed top-0 left-0 right-0 bottom-0 z-10 backdrop-blur-md transition duration-500 bg-background/50 ${
-          isMenuOpen ? "opacity-100" : "opacity-0"
+          isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       ></div>
       <nav

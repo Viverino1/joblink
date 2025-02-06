@@ -9,6 +9,28 @@ declare global {
     }
     firstName?: string
   }
+
+  interface JobPosting {
+    id: string;
+    title: string;
+    company: string;
+    location: {
+      city: string;
+      state: string;
+    };
+    isRemote: boolean;
+    description: string;
+    requirements: string[];
+    postedDate: string;
+    salary: string;
+    jobType: "Intern" | "Part-time";
+    applicants: {
+      total: number;
+      filled: number;
+    };
+    status: "open" | "closed";
+    updatedAt: string;
+  }
 }
 
 export type User = {
