@@ -35,7 +35,8 @@ export default function Browse() {
   const [selectedLocations, setSelectedLocations] = useState<Set<string>>(
     new Set()
   );
-  const [salaryRange, setSalaryRange] = useState<string>("all");
+  // Change salaryRange to use Set like other filters
+  const [selectedSalaryRanges, setSelectedSalaryRanges] = useState<Set<string>>(new Set());
 
   // Update filtering effect
   useEffect(() => {
@@ -52,8 +53,12 @@ export default function Browse() {
         selectedLocations.size === 0 ||
         selectedLocations.has(job.location.city);
 
+      // Update salary matching logic
       const matchesSalary =
-        salaryRange === "all" || matchSalaryRange(job.salary, salaryRange);
+        selectedSalaryRanges.size === 0 ||
+        Array.from(selectedSalaryRanges).some(range => 
+          matchSalaryRange(job.salary, range)
+        );
 
       return (
         matchesSearch && matchesJobType && matchesLocation && matchesSalary
@@ -61,7 +66,7 @@ export default function Browse() {
     });
 
     setFilteredJobs(filtered);
-  }, [jobs, searchQuery, selectedJobTypes, selectedLocations, salaryRange]);
+  }, [jobs, searchQuery, selectedJobTypes, selectedLocations, selectedSalaryRanges]);
 
   // Add helper function for salary matching
   const matchSalaryRange = (salary: string, range: string) => {
@@ -99,7 +104,20 @@ export default function Browse() {
     setSearchQuery("");
     setSelectedJobTypes(new Set());
     setSelectedLocations(new Set());
-    setSalaryRange("all");
+    setSelectedSalaryRanges(new Set());
+  };
+
+  // Add toggle function for salary ranges
+  const toggleSalaryRange = (range: string) => {
+    setSelectedSalaryRanges((prev) => {
+      const next = new Set(prev);
+      if (next.has(range)) {
+        next.delete(range);
+      } else {
+        next.add(range);
+      }
+      return next;
+    });
   };
 
   const toggleJobType = (type: string) => {
@@ -320,8 +338,18 @@ export default function Browse() {
                         >
                           <Checkbox
                             id={`salary-${range.value}`}
-                            checked={salaryRange === range.value}
-                            onCheckedChange={() => setSalaryRange(range.value)}
+                            checked={
+                              range.value === "all"
+                                ? selectedSalaryRanges.size === 0
+                                : selectedSalaryRanges.has(range.value)
+                            }
+                            onCheckedChange={() => {
+                              if (range.value === "all") {
+                                setSelectedSalaryRanges(new Set());
+                              } else {
+                                toggleSalaryRange(range.value);
+                              }
+                            }}
                             className="border-muted-foreground/50 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                           />
                           <label
