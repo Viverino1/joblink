@@ -115,17 +115,21 @@ export async function createJob(job: {
   requirements: string[];
   jobType: string;
   salary: string;
+  applicants?: { total: number; filled: number };
+  status?: string;
 }) {
   const sql = await getServerSql();
   try {
     const result = await sql`
       INSERT INTO jobs (
         title, company, location_city, location_state, is_remote, 
-        description, requirements, job_type, salary
+        description, requirements, job_type, salary, applicants_total,
+        applicants_filled, status
       ) VALUES (
         ${job.title}, ${job.company}, ${job.location.city}, ${job.location.state},
         ${job.isRemote}, ${job.description}, ${job.requirements}, ${job.jobType},
-        ${job.salary}
+        ${job.salary}, ${job.applicants?.total || 0}, ${job.applicants?.filled || 0},
+        ${job.status || 'open'}
       ) RETURNING *;
     `;
     return result[0];
