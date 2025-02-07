@@ -239,11 +239,11 @@ export default function Browse() {
   }
 
   return (
-    <div className="container mx-auto py-24 px-8 max-w-[1600px]">
-      <div className="flex flex-col gap-8">
-        <div className="flex flex-col lg:flex-row gap-8">
+    <div className="container mx-auto py-20 md:py-24">
+      <div className="flex flex-col">
+        <div className="flex flex-col lg:flex-row md:gap-6 gap-4 md:px-6 px-4">
           {/* Add sticky positioning to the filters column */}
-          <div className="w-full lg:w-64 space-y-6 lg:sticky lg:top-24 lg:h-fit">
+          <div className="w-full lg:max-w-64 space-y-6 lg:sticky top-20">
             <Card>
               <CardContent className="p-6">
                 <div className="space-y-6">
@@ -382,8 +382,8 @@ export default function Browse() {
               </CardContent>
             </Card>
           </div>
-          <div className="flex-1">
-            <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-8">
+          <div className="flex">
+            <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 md:gap-6 gap-4 w-full">
               {isLoading ? (
                 <>
                   <JobCardSkeleton />
@@ -403,7 +403,7 @@ export default function Browse() {
                   <Modal key={job.id}>
                     <ModalTrigger className="w-full h-full">
                       <Card
-                        className={`h-full hover:bg-accent/5 transition-colors bg-card border-border ${
+                        className={`h-full hover:bg-accent/5 transition-colors bg-card border-border w-full ${
                           job.status === "closed" ? "opacity-70" : ""
                         }`}
                       >
