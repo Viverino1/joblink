@@ -15,7 +15,7 @@ export default function Navbar() {
       <nav className="fixed top-0 left-0 right-0 z-50 w-full h-16 bg-background/50 border-b border-border flex items-center px-3 justify-between backdrop-blur-md">
         <div className="flex items-center space-x-3">
           <Link href="/">
-            <Button variant="ghost" className="pl-1.5 pr-2.5">
+            <Button variant="ghost" className="p-1.5 md:pr-2.5">
               <Icon className="w-6 h-6" />
               <p className="font-mont font-bold text-lg mt-1 hidden md:block">
                 JobLink

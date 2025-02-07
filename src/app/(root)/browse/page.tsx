@@ -13,9 +13,16 @@ import {
   Search,
   Briefcase,
   BookmarkIcon,
+  Globe,
 } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
-import type { JobPosting } from "@/types/job";
+import {
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalTrigger,
+} from "@/components/ui/animated-modal";
 
 export default function Browse() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -117,7 +124,9 @@ export default function Browse() {
       try {
         const response = await fetch("/api/bookmarks");
         const data = await response.json();
-        setBookmarkedJobs(new Set(data.map((bookmark: { id: string }) => bookmark.id)));
+        setBookmarkedJobs(
+          new Set(data.map((bookmark: { id: string }) => bookmark.id))
+        );
       } catch (error) {
         console.error("Error fetching bookmarks:", error);
       }
@@ -391,51 +400,170 @@ export default function Browse() {
                 </div>
               ) : (
                 filteredJobs.map((job) => (
-                  <Card
-                    key={job.id}
-                    className={`hover:bg-accent/5 transition-colors bg-card border-border ${
-                      job.status === "closed" ? "opacity-70" : ""
-                    }`}
-                  >
-                    <CardContent className="p-6">
-                      {/* Header Section */}
-                      <div className="flex items-start gap-6">
-                        <div className="h-14 w-14 rounded-md bg-muted/50 border border-border/50 flex items-center justify-center shrink-0">
-                          <span className="text-xl font-medium">
-                            {job.company.charAt(0)}
-                          </span>
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-medium text-base">
-                                  {job.title}
-                                </h3>
-                              </div>
-                              <p className="text-sm text-muted-foreground">
-                                {job.company}
-                              </p>
+                  <Modal key={job.id}>
+                    <ModalTrigger className="w-full h-full">
+                      <Card
+                        className={`h-full hover:bg-accent/5 transition-colors bg-card border-border ${
+                          job.status === "closed" ? "opacity-70" : ""
+                        }`}
+                      >
+                        <CardContent className="p-6 h-full flex flex-col">
+                          {/* Header Section */}
+                          <div className="flex items-start gap-6">
+                            <div className="h-14 w-14 rounded-md bg-muted/50 border border-border/50 flex items-center justify-center shrink-0">
+                              <span className="text-xl font-medium">
+                                {job.company.charAt(0)}
+                              </span>
                             </div>
-                            <button
-                              onClick={() => toggleBookmark(job.id)}
-                              className="text-muted-foreground hover:text-primary"
-                            >
-                              <BookmarkIcon
-                                className={`h-5 w-5 transition ${
-                                  bookmarkedJobs.has(job.id)
-                                    ? "fill-current text-primary hover:text-primary/80"
-                                    : ""
+
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="text-left">
+                                  <h3 className="font-medium text-base leading-none mb-2">
+                                    {job.title}
+                                  </h3>
+                                  <p className="text-sm text-muted-foreground leading-none">
+                                    {job.company}
+                                  </p>
+                                </div>
+                                <div
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    toggleBookmark(job.id);
+                                  }}
+                                  className="text-muted-foreground hover:text-primary cursor-pointer"
+                                >
+                                  <BookmarkIcon
+                                    className={`h-5 w-5 transition ${
+                                      bookmarkedJobs.has(job.id)
+                                        ? "fill-current text-primary hover:text-primary/80"
+                                        : ""
+                                    }`}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Details Section */}
+                          <div className="mt-4">
+                            <div className="flex flex-wrap gap-2">
+                              <Badge variant="default" className="text-xs">
+                                <DollarSign className="h-3.5 w-3.5 shrink-0" />
+                                <span>{job.salary}</span>
+                              </Badge>
+                              <Badge variant="default" className="text-xs">
+                                <Briefcase className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                                {job.jobType}
+                              </Badge>
+                              <Badge variant="default" className="text-xs">
+                                <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                                {job.location.city}, {job.location.state}
+                              </Badge>
+                              {job.isRemote && (
+                                <Badge variant="default" className="text-xs">
+                                  <Globe className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                                  Remote
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Progress Section */}
+                          <div className="mt-4 space-y-3">
+                            <div className="h-1.5 bg-muted/50 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all ${
+                                  job.status === "closed"
+                                    ? "bg-destructive/80"
+                                    : "bg-primary/80"
                                 }`}
+                                style={{
+                                  width: `${
+                                    (job.applicants.filled /
+                                      job.applicants.total) *
+                                    100
+                                  }%`,
+                                }}
                               />
-                            </button>
+                            </div>
+                            <div className="flex items-center justify-between text-xs">
+                              <span
+                                className={
+                                  job.status === "closed"
+                                    ? "text-destructive font-medium"
+                                    : "text-muted-foreground"
+                                }
+                              >
+                                {job.status === "closed"
+                                  ? "Position Closed"
+                                  : `${job.applicants.filled} of ${job.applicants.total} filled`}
+                              </span>
+                              <span
+                                className={
+                                  job.status === "closed"
+                                    ? "hidden"
+                                    : "text-muted-foreground"
+                                }
+                              >
+                                Updated{" "}
+                                {new Date(job.updatedAt).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                    hour: "numeric",
+                                    minute: "numeric",
+                                    hour12: true,
+                                  }
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </ModalTrigger>
+                    <ModalBody className="mx-4 rounded-2xl">
+                      <ModalContent className="p-4 md:p-6 space-y-4 md:space-y-6">
+                        {/* Header */}
+                        <div className="flex items-start gap-6">
+                          <div className="h-14 w-14 rounded-md bg-muted/50 border border-border/50 flex items-center justify-center shrink-0">
+                            <span className="text-xl font-medium">
+                              {job.company.charAt(0)}
+                            </span>
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <h2 className="text-md text-muted-foreground">
+                                  {job.company}
+                                </h2>
+                                <h1 className="text-xl font-medium text-foreground">
+                                  {job.title}
+                                </h1>
+                              </div>
+                              <div
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  toggleBookmark(job.id);
+                                }}
+                                className="text-muted-foreground hover:text-primary cursor-pointer"
+                              >
+                                <BookmarkIcon
+                                  className={`h-5 w-5 transition ${
+                                    bookmarkedJobs.has(job.id)
+                                      ? "fill-current text-primary hover:text-primary/80"
+                                      : ""
+                                  }`}
+                                />
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      {/* Details Section */}
-                      <div className="mt-4">
+                        {/* Details */}
                         <div className="flex flex-wrap gap-3">
                           <Badge variant="default" className="text-xs">
                             <DollarSign className="h-3.5 w-3.5 shrink-0" />
@@ -449,61 +577,99 @@ export default function Browse() {
                             <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0" />
                             {job.location.city}, {job.location.state}
                           </Badge>
+                          {job.isRemote && (
+                            <Badge variant="default" className="text-xs">
+                              <Globe className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                              Remote
+                            </Badge>
+                          )}
                         </div>
-                      </div>
 
-                      {/* Progress Section */}
-                      <div className="mt-4 space-y-3">
-                        <div className="h-1.5 bg-muted/50 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all ${
-                              job.status === "closed"
-                                ? "bg-destructive/80"
-                                : "bg-primary/80"
-                            }`}
-                            style={{
-                              width: `${
-                                (job.applicants.filled / job.applicants.total) *
-                                100
-                              }%`,
-                            }}
-                          />
+                        {/* Description */}
+                        <div className="space-y-4 w-full">
+                          <div>
+                            <h3 className="text-sm font-medium mb-2">
+                              Description
+                            </h3>
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                              {job.description}
+                            </p>
+                          </div>
+
+                          {/* Requirements */}
+                          <div>
+                            <h3 className="text-sm font-medium mb-2">
+                              Requirements
+                            </h3>
+                            <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                              {job.requirements.map((req, index) => (
+                                <li key={index}>{req}</li>
+                              ))}
+                            </ul>
+                          </div>
                         </div>
-                        <div className="flex items-center justify-between text-xs">
-                          <span
-                            className={
-                              job.status === "closed"
-                                ? "text-destructive font-medium"
-                                : "text-muted-foreground"
-                            }
-                          >
-                            {job.status === "closed"
-                              ? "Position Closed"
-                              : `${job.applicants.filled} of ${job.applicants.total} filled`}
-                          </span>
-                          <span
-                            className={
-                              job.status === "closed"
-                                ? "hidden"
-                                : "text-muted-foreground"
-                            }
-                          >
-                            Updated{" "}
+
+                        <div className="space-y-1 md:hidden block">
+                          <p className="text-xs text-muted-foreground">
+                            Posted:{" "}
+                            {new Date(job.postedDate).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "long",
+                                day: "numeric",
+                                year: "numeric",
+                              }
+                            )}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Last Updated:{" "}
                             {new Date(job.updatedAt).toLocaleDateString(
                               "en-US",
                               {
-                                month: "short",
+                                month: "long",
                                 day: "numeric",
-                                hour: "numeric",
-                                minute: "numeric",
-                                hour12: true,
+                                year: "numeric",
                               }
                             )}
-                          </span>
+                          </p>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </ModalContent>
+                      <ModalFooter className="border-t border-border bg-card/50 p-4 md:p-6">
+                        <div className="w-full flex flex-col md:flex-row md:justify-between md:items-center gap-4 md:gap-0">
+                          <div className="space-y-1 hidden md:block">
+                            <p className="text-xs text-muted-foreground">
+                              Posted:{" "}
+                              {new Date(job.postedDate).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "long",
+                                  day: "numeric",
+                                  year: "numeric",
+                                }
+                              )}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Last Updated:{" "}
+                              {new Date(job.updatedAt).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "long",
+                                  day: "numeric",
+                                  year: "numeric",
+                                }
+                              )}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <Button variant="outline" className="border-border">
+                              Contact
+                            </Button>
+                            <Button>Apply Now</Button>
+                          </div>
+                        </div>
+                      </ModalFooter>
+                    </ModalBody>
+                  </Modal>
                 ))
               )}
             </div>
