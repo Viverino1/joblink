@@ -401,7 +401,7 @@ export default function Browse() {
               ) : (
                 filteredJobs.map((job) => (
                   <Modal key={job.id}>
-                    <ModalTrigger className="w-full h-full">
+                    <ModalTrigger className="w-full h-fit">
                       <Card
                         className={`h-full hover:bg-accent/5 transition-colors bg-card border-border w-full ${
                           job.status === "closed" ? "opacity-70" : ""
