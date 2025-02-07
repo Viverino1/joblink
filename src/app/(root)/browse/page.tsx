@@ -382,15 +382,15 @@ export default function Browse() {
               </CardContent>
             </Card>
           </div>
-          <div className="flex">
-            <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 md:gap-6 gap-4 w-full">
+          <div className="flex w-full">
+            <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 md:gap-6 gap-4 w-full h-fit ">
               {isLoading ? (
                 <>
                   <JobCardSkeleton />
                   <JobCardSkeleton />
                 </>
               ) : filteredJobs.length === 0 ? (
-                <div className="col-span-full text-center py-8 space-y-2">
+                <div className="col-span-full text-center py-8 space-y-2 w-full">
                   <p className="text-lg font-medium text-muted-foreground">
                     No matches found
                   </p>
