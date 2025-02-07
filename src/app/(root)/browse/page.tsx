@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,11 +15,97 @@ import {
   BookmarkIcon,
 } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
+import type { JobPosting } from "@/types/job";
 
 export default function Browse() {
   const [searchQuery, setSearchQuery] = useState("");
   const [jobs, setJobs] = useState<JobPosting[]>([]);
+  const [filteredJobs, setFilteredJobs] = useState<JobPosting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedJobTypes, setSelectedJobTypes] = useState<Set<string>>(
+    new Set()
+  );
+  const [selectedLocations, setSelectedLocations] = useState<Set<string>>(
+    new Set()
+  );
+  const [salaryRange, setSalaryRange] = useState<string>("all");
+
+  // Update filtering effect
+  useEffect(() => {
+    const filtered = jobs.filter((job) => {
+      const matchesSearch =
+        job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        job.location.city.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesJobType =
+        selectedJobTypes.size === 0 || selectedJobTypes.has(job.jobType);
+
+      const matchesLocation =
+        selectedLocations.size === 0 ||
+        selectedLocations.has(job.location.city);
+
+      const matchesSalary =
+        salaryRange === "all" || matchSalaryRange(job.salary, salaryRange);
+
+      return (
+        matchesSearch && matchesJobType && matchesLocation && matchesSalary
+      );
+    });
+
+    setFilteredJobs(filtered);
+  }, [jobs, searchQuery, selectedJobTypes, selectedLocations, salaryRange]);
+
+  // Add helper function for salary matching
+  const matchSalaryRange = (salary: string, range: string) => {
+    // Extract hourly rate from strings like "15.00/hr" or "$15.00/hr"
+    const hourlyRate = parseFloat(salary.replace(/[^0-9.]/g, ""));
+
+    switch (range) {
+      case "0-15":
+        return hourlyRate <= 15;
+      case "15-20":
+        return hourlyRate > 15 && hourlyRate <= 20;
+      case "20-25":
+        return hourlyRate > 20 && hourlyRate <= 25;
+      case "25+":
+        return hourlyRate > 25;
+      default:
+        return true;
+    }
+  };
+
+  // Add toggle functions for new filters
+  const toggleLocation = (location: string) => {
+    setSelectedLocations((prev) => {
+      const next = new Set(prev);
+      if (next.has(location)) {
+        next.delete(location);
+      } else {
+        next.add(location);
+      }
+      return next;
+    });
+  };
+
+  const handleReset = () => {
+    setSearchQuery("");
+    setSelectedJobTypes(new Set());
+    setSelectedLocations(new Set());
+    setSalaryRange("all");
+  };
+
+  const toggleJobType = (type: string) => {
+    setSelectedJobTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(type)) {
+        next.delete(type);
+      } else {
+        next.add(type);
+      }
+      return next;
+    });
+  };
 
   const { userId } = useAuth();
   const [bookmarkedJobs, setBookmarkedJobs] = useState<Set<string>>(new Set());
@@ -31,7 +117,7 @@ export default function Browse() {
       try {
         const response = await fetch("/api/bookmarks");
         const data = await response.json();
-        setBookmarkedJobs(new Set(data.map((job: any) => job.id)));
+        setBookmarkedJobs(new Set(data.map((bookmark: { id: string }) => bookmark.id)));
       } catch (error) {
         console.error("Error fetching bookmarks:", error);
       }
@@ -41,6 +127,18 @@ export default function Browse() {
 
   const toggleBookmark = async (jobId: string) => {
     if (!userId) return;
+
+    // Optimistically update the UI
+    setBookmarkedJobs((prev) => {
+      const next = new Set(prev);
+      if (next.has(jobId)) {
+        next.delete(jobId);
+      } else {
+        next.add(jobId);
+      }
+      return next;
+    });
+
     try {
       const response = await fetch("/api/bookmarks", {
         method: "POST",
@@ -49,16 +147,29 @@ export default function Browse() {
       });
       const { isBookmarked } = await response.json();
 
+      // If the server response doesn't match our optimistic update, revert it
+      if (isBookmarked !== bookmarkedJobs.has(jobId)) {
+        setBookmarkedJobs((prev) => {
+          const next = new Set(prev);
+          if (isBookmarked) {
+            next.add(jobId);
+          } else {
+            next.delete(jobId);
+          }
+          return next;
+        });
+      }
+    } catch (error) {
+      // Revert the optimistic update on error
       setBookmarkedJobs((prev) => {
         const next = new Set(prev);
-        if (isBookmarked) {
-          next.add(jobId);
-        } else {
+        if (next.has(jobId)) {
           next.delete(jobId);
+        } else {
+          next.add(jobId);
         }
         return next;
       });
-    } catch (error) {
       console.error("Error toggling bookmark:", error);
     }
   };
@@ -130,7 +241,12 @@ export default function Browse() {
                   <div>
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-semibold">Filters</h3>
-                      <Button variant="badge" size="sm" className="text-xs">
+                      <Button
+                        variant="badge"
+                        size="sm"
+                        className="text-xs"
+                        onClick={handleReset}
+                      >
                         Reset
                       </Button>
                     </div>
@@ -146,51 +262,108 @@ export default function Browse() {
                     </div>
                   </div>
 
-                  {/* Add Job Categories section */}
-                  <div className="space-y-4">
-                    <h4 className="font-medium">Job Categories</h4>
-                    <div className="space-y-2">
-                      {[
-                        "Technology",
-                        "Marketing",
-                        "Customer Service",
-                        "Research",
-                        "Finance",
-                        "Administrative",
-                      ].map((category) => (
-                        <div
-                          key={category}
-                          className="flex items-center space-x-2"
-                        >
-                          <Checkbox
-                            id={category}
-                            className="border-muted-foreground/50 data-[state=checked]:bg-muted-foreground data-[state=checked]:border-muted-foreground"
-                          />
-                          <label
-                            htmlFor={category}
-                            className="text-sm text-muted-foreground"
-                          >
-                            {category}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
                   <div className="space-y-4">
                     <h4 className="font-medium">Job Type</h4>
                     <div className="space-y-2">
-                      {["Part-time", "Internship"].map((type) => (
+                      {["All", "Part-time", "Intern"].map((type) => (
                         <div key={type} className="flex items-center space-x-2">
                           <Checkbox
                             id={type}
-                            className="border-muted-foreground/50 data-[state=checked]:bg-muted-foreground data-[state=checked]:border-muted-foreground"
+                            checked={
+                              type === "All"
+                                ? selectedJobTypes.size === 0
+                                : selectedJobTypes.has(type)
+                            }
+                            onCheckedChange={() => {
+                              if (type === "All") {
+                                setSelectedJobTypes(new Set());
+                              } else {
+                                toggleJobType(type);
+                              }
+                            }}
+                            className="border-muted-foreground/50 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                           />
                           <label
                             htmlFor={type}
                             className="text-sm text-muted-foreground"
                           >
                             {type}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Salary Range Filter */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium">Salary Range</h4>
+                    <div className="space-y-2">
+                      {[
+                        { label: "All", value: "all" },
+                        { label: "Up to $15/hr", value: "0-15" },
+                        { label: "$15/hr - $20/hr", value: "15-20" },
+                        { label: "$20/hr - $25/hr", value: "20-25" },
+                        { label: "$25/hr+", value: "25+" },
+                      ].map((range) => (
+                        <div
+                          key={range.value}
+                          className="flex items-center space-x-2"
+                        >
+                          <Checkbox
+                            id={`salary-${range.value}`}
+                            checked={salaryRange === range.value}
+                            onCheckedChange={() => setSalaryRange(range.value)}
+                            className="border-muted-foreground/50 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                          />
+                          <label
+                            htmlFor={`salary-${range.value}`}
+                            className="text-sm text-muted-foreground"
+                          >
+                            {range.label}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Location Filter */}
+                  <div className="space-y-4">
+                    <h4 className="font-medium">Location</h4>
+                    <div className="space-y-2">
+                      {[
+                        "All",
+                        "Wildwood",
+                        "Chesterfield",
+                        "Ballwin",
+                        "Manchester",
+                        "Ellisville",
+                        "Eureka",
+                      ].map((location) => (
+                        <div
+                          key={location}
+                          className="flex items-center space-x-2"
+                        >
+                          <Checkbox
+                            id={`location-${location}`}
+                            checked={
+                              location === "All"
+                                ? selectedLocations.size === 0
+                                : selectedLocations.has(location)
+                            }
+                            onCheckedChange={() => {
+                              if (location === "All") {
+                                setSelectedLocations(new Set());
+                              } else {
+                                toggleLocation(location);
+                              }
+                            }}
+                            className="border-muted-foreground/50 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                          />
+                          <label
+                            htmlFor={`location-${location}`}
+                            className="text-sm text-muted-foreground"
+                          >
+                            {location}
                           </label>
                         </div>
                       ))}
@@ -207,12 +380,17 @@ export default function Browse() {
                   <JobCardSkeleton />
                   <JobCardSkeleton />
                 </>
-              ) : jobs.length === 0 ? (
-                <div className="col-span-full text-center py-8">
-                  No jobs found
+              ) : filteredJobs.length === 0 ? (
+                <div className="col-span-full text-center py-8 space-y-2">
+                  <p className="text-lg font-medium text-muted-foreground">
+                    No matches found
+                  </p>
+                  <p className="text-sm text-muted-foreground/80">
+                    Try adjusting your filters or search terms
+                  </p>
                 </div>
               ) : (
-                jobs.map((job) => (
+                filteredJobs.map((job) => (
                   <Card
                     key={job.id}
                     className={`hover:bg-accent/5 transition-colors bg-card border-border ${

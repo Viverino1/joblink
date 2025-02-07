@@ -66,7 +66,7 @@ export default function OnboardingComponent() {
           <CardHeader className="text-center">
             <CardTitle className="text-xl">Almost done!</CardTitle>
             <CardDescription>
-              We'll need a few more details to get you started.
+              We&apos;ll need a few more details to get you started.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -125,7 +125,7 @@ export default function OnboardingComponent() {
                       <FormLabel>Bio</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="I'm artistic and hardworking..."
+                          placeholder="I&apos;m artistic and hardworking..."
                           {...field}
                         />
                       </FormControl>

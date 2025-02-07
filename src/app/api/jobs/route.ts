@@ -6,7 +6,7 @@ export async function GET() {
     const jobs = await getJobs();
     return NextResponse.json(jobs || []);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch jobs' }, { status: 500 });
+    return NextResponse.json({ msg: 'Failed to fetch jobs', error: error }, { status: 500 });
   }
 }
 
@@ -16,6 +16,6 @@ export async function POST(request: Request) {
     const newJob = await createJob(job);
     return NextResponse.json(newJob);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to create job' }, { status: 500 });
+    return NextResponse.json({ msg: 'Failed to create job', error: error }, { status: 500 });
   }
 }
