@@ -7,7 +7,7 @@ export default function Hero() {
           Find work today.
         </h1>
         <p className="text-[3.5vw] md:text-[1.25vw] text-center mt-2">
-          Choose from reputable opportunities approved by Lafayette High Scool.
+          Choose from reputable opportunities approved by Lafayette High School.
         </p>
       </div>
       <div className="translate-y-[3vh] md:translate-x-[2vw] translate-x-[5vw] opacity-50 pointer-events-none relative flex aspect-square h-[100vh] w-[200vh] items-center justify-center overflow-clip -z-10">
