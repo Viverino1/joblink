@@ -36,7 +36,9 @@ export default function Browse() {
     new Set()
   );
   // Change salaryRange to use Set like other filters
-  const [selectedSalaryRanges, setSelectedSalaryRanges] = useState<Set<string>>(new Set());
+  const [selectedSalaryRanges, setSelectedSalaryRanges] = useState<Set<string>>(
+    new Set()
+  );
 
   // Update filtering effect
   useEffect(() => {
@@ -56,7 +58,7 @@ export default function Browse() {
       // Update salary matching logic
       const matchesSalary =
         selectedSalaryRanges.size === 0 ||
-        Array.from(selectedSalaryRanges).some(range => 
+        Array.from(selectedSalaryRanges).some((range) =>
           matchSalaryRange(job.salary, range)
         );
 
@@ -66,7 +68,13 @@ export default function Browse() {
     });
 
     setFilteredJobs(filtered);
-  }, [jobs, searchQuery, selectedJobTypes, selectedLocations, selectedSalaryRanges]);
+  }, [
+    jobs,
+    searchQuery,
+    selectedJobTypes,
+    selectedLocations,
+    selectedSalaryRanges,
+  ]);
 
   // Add helper function for salary matching
   const matchSalaryRange = (salary: string, range: string) => {
@@ -636,6 +644,19 @@ export default function Browse() {
                             </ul>
                           </div>
                         </div>
+                        {/* Add Contact Section */}
+                        <div>
+                          <h3 className="text-sm font-medium mb-2">Contact</h3>
+                          <div className="text-sm text-muted-foreground">
+                            <a
+                              href={`mailto:${job.contactEmail}`}
+                              className="w-fit text-muted-foreground hover:text-primary flex items-center gap-2"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {job.contactEmail}
+                            </a>
+                          </div>
+                        </div>
 
                         <div className="space-y-1 md:hidden block">
                           <p className="text-xs text-muted-foreground">
@@ -689,10 +710,24 @@ export default function Browse() {
                             </p>
                           </div>
                           <div className="flex items-center gap-4">
-                            <Button variant="outline" className="border-border">
+                            <Button 
+                              variant="outline" 
+                              className="border-border"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                window.location.href = `mailto:${job.contactEmail}`;
+                              }}
+                            >
                               Contact
                             </Button>
-                            <Button>Apply Now</Button>
+                            <Button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                window.location.href = `/jobs/${job.id}/apply`;
+                              }}
+                            >
+                              Apply Now
+                            </Button>
                           </div>
                         </div>
                       </ModalFooter>

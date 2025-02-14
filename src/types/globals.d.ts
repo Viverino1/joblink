@@ -1,13 +1,13 @@
-export {}
+export {};
 
 declare global {
   interface CustomJwtSessionClaims {
     metadata: {
-      onboardingComplete?: boolean
-      applicationName?: string
-      applicationType?: string
-    }
-    firstName?: string
+      onboardingComplete?: boolean;
+      applicationName?: string;
+      applicationType?: string;
+    };
+    firstName?: string;
   }
 
   interface JobPosting {
@@ -30,6 +30,7 @@ declare global {
     };
     status: "open" | "closed";
     updatedAt: string;
+    contactEmail: string; // Add this line
   }
 }
 
@@ -41,4 +42,4 @@ export type User = {
   bio: string;
   linkedin: string;
   onboardingComplete: boolean;
-}
+};

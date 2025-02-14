@@ -13,10 +13,8 @@ export async function getServerSql() {
 export async function createJobsTable() {
   const sql = await getServerSql();
   try {
-    // Create UUID extension first
     await sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
     
-    // Then create the table
     await sql`
       CREATE TABLE IF NOT EXISTS jobs (
         id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -33,7 +31,8 @@ export async function createJobsTable() {
         applicants_total INTEGER DEFAULT 0,
         applicants_filled INTEGER DEFAULT 0,
         status VARCHAR(50) DEFAULT 'open',
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        contact_email VARCHAR(255) NOT NULL
       );
     `;
     console.log('Jobs table created successfully');
@@ -117,6 +116,7 @@ export async function createJob(job: {
   salary: string;
   applicants?: { total: number; filled: number };
   status?: string;
+  contactEmail: string; // Add this line
 }) {
   const sql = await getServerSql();
   try {
@@ -124,12 +124,12 @@ export async function createJob(job: {
       INSERT INTO jobs (
         title, company, location_city, location_state, is_remote, 
         description, requirements, job_type, salary, applicants_total,
-        applicants_filled, status
+        applicants_filled, status, contact_email
       ) VALUES (
         ${job.title}, ${job.company}, ${job.location.city}, ${job.location.state},
         ${job.isRemote}, ${job.description}, ${job.requirements}, ${job.jobType},
         ${job.salary}, ${job.applicants?.total || 0}, ${job.applicants?.filled || 0},
-        ${job.status || 'open'}
+        ${job.status || 'open'}, ${job.contactEmail}
       ) RETURNING *;
     `;
     return result[0];
@@ -164,10 +164,45 @@ export async function getJobs() {
         filled: job.applicants_filled
       },
       status: job.status,
-      updatedAt: job.updated_at
+      updatedAt: job.updated_at,
+      contactEmail: job.contact_email // Add this line
     }));
   } catch (error) {
     console.error('Error fetching jobs:', error);
+    throw error;
+  }
+}
+
+export async function getJob(id: string) {
+  const sql = await getServerSql();
+  try {
+    const [job] = await sql`
+      SELECT * FROM jobs WHERE id = ${id};
+    `;
+    return job ? {
+      id: job.id,
+      title: job.title,
+      company: job.company,
+      location: {
+        city: job.location_city,
+        state: job.location_state
+      },
+      isRemote: job.is_remote,
+      description: job.description,
+      requirements: job.requirements,
+      jobType: job.job_type,
+      salary: job.salary,
+      contactEmail: job.contact_email,
+      applicants: {
+        total: job.applicants_total,
+        filled: job.applicants_filled
+      },
+      status: job.status,
+      postedDate: job.posted_date,
+      updatedAt: job.updated_at
+    } : null;
+  } catch (error) {
+    console.error('Error fetching job:', error);
     throw error;
   }
 }
