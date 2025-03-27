@@ -30,7 +30,8 @@ declare global {
     };
     status: "open" | "closed";
     updatedAt: string;
-    contactEmail: string; // Add this line
+    contactEmail: string;
+    applyLink?: string; // Add this line
   }
 }
 

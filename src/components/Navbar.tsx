@@ -24,9 +24,9 @@ export default function Navbar() {
           </Link>
 
           <div className="space-x-5 hidden md:block">
-            <NavLink link="/about">About</NavLink>
             <NavLink link="/browse">Browse</NavLink>
             <NavLink link="/post">Post</NavLink>
+            <NavLink link="/admin">Admin</NavLink>
           </div>
         </div>
         <div className="flex items-center space-x-1">
@@ -69,9 +69,9 @@ export default function Navbar() {
           className="text-foreground/70 hover:text-foreground absolute top-4 right-3.5"
           onClick={() => setMenuIsOpen(!isMenuOpen)}
         />
-        <NavLinkMobile link="/about">About</NavLinkMobile>
         <NavLinkMobile link="/browse">Browse</NavLinkMobile>
         <NavLinkMobile link="/post">Post</NavLinkMobile>
+        <NavLinkMobile link="/admin">Admin</NavLinkMobile>
       </nav>
     </>
   );

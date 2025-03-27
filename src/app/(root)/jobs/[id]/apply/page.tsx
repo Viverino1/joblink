@@ -56,6 +56,25 @@ export default function ApplicationPage() {
   const { id } = useParams();
   const [job, setJob] = useState<JobPosting | null>(null);
   const { user } = useUser();
+
+  useEffect(() => {
+    async function fetchJob() {
+      try {
+        const response = await fetch(`/api/jobs/${id}`);
+        const data = await response.json();
+        setJob(data);
+        
+        // Redirect to external application link if it exists
+        if (data.applyLink) {
+          window.location.href = data.applyLink;
+        }
+      } catch (error) {
+        console.error("Error fetching job:", error);
+      }
+    }
+    fetchJob();
+  }, [id]);
+
   const [isOpen, setIsOpen] = useState(false);
 
   const form = useForm<z.infer<typeof applicationSchema>>({
@@ -78,19 +97,6 @@ export default function ApplicationPage() {
       form.setValue("email", user.emailAddresses[0]?.emailAddress || "");
     }
   }, [user, form]);
-
-  useEffect(() => {
-    async function fetchJob() {
-      try {
-        const response = await fetch(`/api/jobs/${id}`);
-        const data = await response.json();
-        setJob(data);
-      } catch (error) {
-        console.error("Error fetching job:", error);
-      }
-    }
-    fetchJob();
-  }, [id]);
 
   if (!job) return <ApplicationLoadingSkeleton />;
 

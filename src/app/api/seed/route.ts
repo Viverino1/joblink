@@ -1,5 +1,19 @@
 import { NextResponse } from "next/server";
-import { createJob } from "@/lib/db";
+import { createJob, createJobsTable, createJobApproval } from "@/lib/db";
+
+// Add this GET route to create the table
+export async function GET() {
+  try {
+    await createJobsTable();
+    return NextResponse.json({ message: "Jobs table created successfully" });
+  } catch (error) {
+    console.error("Error creating jobs table:", error);
+    return NextResponse.json(
+      { error: "Failed to create jobs table" },
+      { status: 500 }
+    );
+  }
+}
 
 const dummyJobs = [
   {
@@ -20,6 +34,7 @@ const dummyJobs = [
     contactEmail: "careers@techstart.com",
     applicants: { total: 10, filled: 3 },
     status: "open",
+    applyLink: "https://techstart.careers/junior-dev-2024"
   },
   {
     title: "Content Writer Intern",
@@ -58,7 +73,8 @@ const dummyJobs = [
     salary: "20.00/hr",
     contactEmail: "careers@gatewayfinancial.com",
     applicants: { total: 12, filled: 3 },
-    status: "open"
+    status: "open",
+    applyLink: "https://gatewayfinancial.com/internships/finance-2024"
   },
   {
     title: "Event Planning Assistant",
@@ -97,7 +113,8 @@ const dummyJobs = [
     salary: "21.00/hr",
     contactEmail: "design@digitalinnovations.com",
     applicants: { total: 15, filled: 5 },
-    status: "open"
+    status: "open",
+    applyLink: "https://digitalinnovations.com/careers/design-intern"
   },
   {
     title: "Environmental Project Assistant",
@@ -156,15 +173,25 @@ const dummyJobs = [
 export async function POST() {
   try {
     const createdJobs = [];
+    const approvals = [];
+
     for (const job of dummyJobs) {
       try {
         console.log("Attempting to create job:", job.title);
         const createdJob = await createJob(job);
         createdJobs.push(createdJob);
-        console.log("Successfully created job:", job.title);
+        
+        // Create approval for each job
+        const approval = await createJobApproval(
+          createdJob.id,
+          "admin-user-123" // Replace with actual admin ID in production
+        );
+        approvals.push(approval);
+        
+        console.log("Successfully created job and approval:", job.title);
       } catch (jobError) {
-        console.error("Error creating job:", job.title, jobError);
-        throw jobError; // Re-throw to see the actual error
+        console.error("Error creating job or approval:", job.title, jobError);
+        throw jobError;
       }
     }
 
@@ -179,8 +206,9 @@ export async function POST() {
     }
 
     return NextResponse.json({
-      message: `Successfully seeded ${createdJobs.length} jobs`,
+      message: `Successfully seeded ${createdJobs.length} jobs with approvals`,
       jobs: createdJobs,
+      approvals: approvals
     });
   } catch (error) {
     console.error("Error in seed route:", error);

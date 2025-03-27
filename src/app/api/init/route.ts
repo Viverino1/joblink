@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import { createJobsTable, createBookmarksTable } from '@/lib/db';
+import { createJobsTable, createBookmarksTable, createJobApprovalsTable } from '@/lib/db';
 
 export async function POST() {
   try {
     await createJobsTable();
     await createBookmarksTable();
+    await createJobApprovalsTable();
     
     return NextResponse.json({ 
       message: 'Database tables created successfully' 
