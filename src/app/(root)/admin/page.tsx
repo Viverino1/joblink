@@ -8,6 +8,7 @@ import { JobCard } from "@/components/job-card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { JobCardSkeleton } from "@/components/job-card-skeleton";
+import { Mail } from "lucide-react";
 
 export default function Admin() {
   const { user } = useUser();
@@ -15,12 +16,28 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState<string | null>(null);
   const [recentApprovals, setRecentApprovals] = useState<JobPosting[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    Promise.all([fetchPendingJobs(), fetchRecentApprovals()]).finally(() =>
-      setLoading(false)
-    );
-  }, []);
+    async function checkAdminStatus() {
+      try {
+        const response = await fetch(`/api/admin/check?userId=${user?.id}`);
+        const { isAdmin } = await response.json();
+        setIsAdmin(isAdmin);
+        if (isAdmin) {
+          await Promise.all([fetchPendingJobs(), fetchRecentApprovals()]);
+        }
+      } catch (error) {
+        console.error("Error checking admin status:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (user) {
+      checkAdminStatus();
+    }
+  }, [user]);
 
   const fetchRecentApprovals = async () => {
     try {
@@ -107,18 +124,47 @@ export default function Admin() {
     }
   };
 
-  // if (loading) {
-  //   return (
-  //     <div className="container mx-auto mt-16 p-4">
-  //       <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 md:gap-6 gap-4">
-  //         <JobCardSkeleton />
-  //         <JobCardSkeleton />
-  //         <JobCardSkeleton />
-  //         <JobCardSkeleton />
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  if (loading) {
+    return (
+      <div className="container mx-auto mt-16 p-4">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold">Job Approvals</h1>
+          <div className="h-8 w-48 bg-muted rounded-md animate-pulse" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 md:gap-6 gap-4">
+          <JobCardSkeleton />
+          <JobCardSkeleton />
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="container mx-auto mt-16 p-4">
+        <Card>
+          <CardContent className="py-16">
+            <div className="text-center space-y-6">
+              <h2 className="text-2xl font-bold">Admin Access Required</h2>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                You currently don't have admin privileges. Request access to
+                manage and approve job postings.
+              </p>
+              <Button
+                className="mt-4"
+                onClick={() =>
+                  (window.location.href = `mailto:admin@joblink.com?subject=Admin Access Request&body=User ID: ${user?.id}`)
+                }
+              >
+                <Mail className="mr-2 h-4 w-4" />
+                Request Admin Access
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto mt-16 p-4">

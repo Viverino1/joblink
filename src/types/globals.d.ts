@@ -7,6 +7,13 @@ declare global {
       applicationName?: string;
       applicationType?: string;
     };
+    publicMetadata: {
+      onboardingComplete?: boolean;
+      firstName?: string;
+      lastName?: string;
+      bio?: string;
+      linkedin?: string;
+    };
     firstName?: string;
   }
 

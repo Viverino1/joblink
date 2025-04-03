@@ -1,11 +1,13 @@
 import { neon } from "@neondatabase/serverless";
 
-// Only create the connection on the server side
-const sql = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
+let sql: any = null;
 
 export async function getServerSql() {
   if (!sql) {
-    throw new Error("Database connection can only be made on the server side");
+    if (!process.env.DATABASE_URL) {
+      throw new Error("DATABASE_URL is not defined");
+    }
+    sql = neon(process.env.DATABASE_URL);
   }
   return sql;
 }
@@ -204,7 +206,7 @@ export async function getJobs() {
       INNER JOIN job_approvals ja ON j.id = ja.job_id
       ORDER BY j.posted_date DESC;
     `;
-    return jobs.map((job) => ({
+    return jobs.map((job: any) => ({
       id: job.id,
       title: job.title,
       company: job.company,
@@ -245,7 +247,7 @@ export async function getPendingJobs() {
       ORDER BY j.posted_date DESC;
     `;
 
-    return jobs.map((job) => ({
+    return jobs.map((job: any) => ({
       id: job.id,
       title: job.title,
       company: job.company,
@@ -339,7 +341,7 @@ export async function getRecentApprovals() {
       LIMIT 20;
     `;
 
-    return jobs.map((job) => ({
+    return jobs.map((job: any) => ({
       id: job.id,
       title: job.title,
       company: job.company,
@@ -379,6 +381,64 @@ export async function revokeJobApproval(jobId: string) {
     return true;
   } catch (error) {
     console.error("Error revoking job approval:", error);
+    throw error;
+  }
+}
+
+export async function createAdminApproval(userId: string, approverId: string, expiresAt: Date) {
+  const sql = await getServerSql();
+  try {
+    const result = await sql`
+      INSERT INTO admin_approvals (user_id, approver_id, expires_at)
+      VALUES (${userId}, ${approverId}, ${expiresAt})
+      RETURNING *;
+    `;
+    return result[0];
+  } catch (error) {
+    console.error("Error creating admin approval:", error);
+    throw error;
+  }
+}
+
+export async function getAdminApproval(userId: string) {
+  const sql = await getServerSql();
+  try {
+    const result = await sql`
+      SELECT * FROM admin_approvals
+      WHERE user_id = ${userId}
+      AND expires_at > CURRENT_TIMESTAMP;
+    `;
+    return result[0] || null;
+  } catch (error) {
+    console.error("Error fetching admin approval:", error);
+    throw error;
+  }
+}
+
+export async function isUserAdmin(userId: string) {
+  const sql = await getServerSql();
+  try {
+    const result = await sql`
+      SELECT * FROM admin_approvals
+      WHERE user_id = ${userId}
+      AND expires_at > CURRENT_TIMESTAMP;
+    `;
+    return result.length > 0;
+  } catch (error) {
+    console.error("Error checking admin status:", error);
+    return false;
+  }
+}
+
+export async function revokeAdminApproval(userId: string) {
+  const sql = await getServerSql();
+  try {
+    await sql`
+      DELETE FROM admin_approvals
+      WHERE user_id = ${userId};
+    `;
+  } catch (error) {
+    console.error("Error revoking admin approval:", error);
     throw error;
   }
 }
