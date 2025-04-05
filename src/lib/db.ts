@@ -415,6 +415,26 @@ export async function getAdminApproval(userId: string) {
   }
 }
 
+export async function getAllAdminApprovals() {
+  const sql = await getServerSql();
+  try {
+    const result = await sql`
+      SELECT 
+        aa.id,
+        aa.user_id,
+        aa.approver_id,
+        aa.approved_at,
+        aa.expires_at
+      FROM admin_approvals aa
+      ORDER BY aa.approved_at DESC;
+    `;
+    return result;
+  } catch (error) {
+    console.error("Error fetching all admin approvals:", error);
+    throw error;
+  }
+}
+
 export async function isUserAdmin(userId: string) {
   const sql = await getServerSql();
   try {
