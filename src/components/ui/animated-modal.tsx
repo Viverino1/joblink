@@ -40,24 +40,17 @@ export function Modal({ children }: { children: ReactNode }) {
   return <ModalProvider>{children}</ModalProvider>;
 }
 
-export const ModalTrigger = ({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) => {
+export const ModalTrigger = ({ children }: { children: ReactNode }) => {
   const { setOpen } = useModal();
+  
+  const handleClick = () => {
+    setOpen(true);
+  };
+
   return (
-    <button
-      className={cn(
-        "rounded-md text-black dark:text-white text-center relative overflow-hidden",
-        className
-      )}
-      onClick={() => setOpen(true)}
-    >
+    <div onClick={handleClick}>
       {children}
-    </button>
+    </div>
   );
 };
 
@@ -104,7 +97,7 @@ export const ModalBody = ({
           <motion.div
             ref={modalRef}
             className={cn(
-              "min-h-[50%] max-h-[90%] max-w-2xl bg-white dark:bg-neutral-950 border border-transparent dark:border-neutral-800 md:rounded-2xl relative z-50 flex flex-col flex-1 overflow-hidden",
+              "max-h-[90%] max-w-2xl bg-white dark:bg-neutral-950 border border-transparent dark:border-neutral-800 md:rounded-2xl relative z-50 flex flex-col flex-1 overflow-hidden",
               className
             )}
             initial={{
@@ -146,7 +139,7 @@ export const ModalContent = ({
   className?: string;
 }) => {
   return (
-    <div className={cn("flex flex-col flex-1 p-8 md:p-10", className)}>
+    <div className={cn("flex flex-col flex-1 p-4 md:p-6", className)}>
       {children}
     </div>
   );

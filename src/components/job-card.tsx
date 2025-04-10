@@ -158,7 +158,7 @@ export function JobCard({ job, action }: JobCardProps) {
           </ModalTrigger>
         </div>
         <ModalBody className="mx-4 rounded-2xl">
-          <ModalContent className="p-4 md:p-6 space-y-4 md:space-y-6">
+          <ModalContent className="space-y-4 md:space-y-6">
             {/* Header */}
             <div className="flex items-start gap-6">
               <div className="h-14 w-14 rounded-md bg-muted/50 border border-border/50 flex items-center justify-center shrink-0">

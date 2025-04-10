@@ -11,6 +11,12 @@ import { UserChip } from "@/components/user-chip";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Mail, Plus, Search, Loader2 } from "lucide-react";
+import {
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalTrigger,
+} from "@/components/ui/animated-modal";
 
 export default function Admin() {
   const { user } = useUser();
@@ -334,13 +340,37 @@ export default function Admin() {
                 >
                   Remove Selected
                 </Button>
-                <Button
-                  variant="default"
-                  size="default"
-                  className="px-4 gap-2.5"
-                >
-                  Add Admin
-                </Button>
+                <Modal>
+                  <ModalTrigger>
+                    <Button
+                      variant="default"
+                      size="default"
+                      className="px-4 gap-2.5"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add Admin
+                    </Button>
+                  </ModalTrigger>
+                  <ModalBody className="w-full max-w-md mx-auto h-auto">
+                    <ModalContent>
+                      <div className="space-y-3">
+                        <h2 className="text-xl font-semibold">Add New Admin</h2>
+                        <div className="space-y-2">
+                          <label className="text-sm text-muted-foreground">
+                            Enter user email address
+                          </label>
+                          <Input
+                            placeholder="email@example.com"
+                            onChange={() => {}}
+                          />
+                        </div>
+                        <Button className="w-full" onClick={() => {}}>
+                          Add Admin
+                        </Button>
+                      </div>
+                    </ModalContent>
+                  </ModalBody>
+                </Modal>
               </div>
             </div>
             <div className="rounded-md border">
