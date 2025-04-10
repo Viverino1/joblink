@@ -326,14 +326,22 @@ export default function Admin() {
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input placeholder="Search admins..." className="pl-8" />
               </div>
-              <Button
-                variant="default"
-                size="default"
-                className="pr-4 pl-3 gap-2.5"
-              >
-                <Plus className="h-4 w-4" />
-                Add Admin
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="destructive"
+                  size="default"
+                  className="px-4 gap-2.5"
+                >
+                  Remove Selected
+                </Button>
+                <Button
+                  variant="default"
+                  size="default"
+                  className="px-4 gap-2.5"
+                >
+                  Add Admin
+                </Button>
+              </div>
             </div>
             <div className="rounded-md border">
               <div className="grid grid-cols-4 gap-4 p-3 border-b bg-muted/50">
