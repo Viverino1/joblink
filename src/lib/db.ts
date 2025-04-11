@@ -454,11 +454,22 @@ export async function revokeAdminApproval(userId: string) {
   const sql = await getServerSql();
   try {
     await sql`
-      DELETE FROM admin_approvals
-      WHERE user_id = ${userId};
+      DELETE FROM admin_approvals WHERE user_id = ${userId}
     `;
   } catch (error) {
     console.error("Error revoking admin approval:", error);
+    throw error;
+  }
+}
+
+export async function deleteAdminApprovals(approvalIds: string[]) {
+  const sql = await getServerSql();
+  try {
+    await sql`
+      DELETE FROM admin_approvals WHERE id = ANY(${approvalIds})
+    `;
+  } catch (error) {
+    console.error("Error deleting admin approvals:", error);
     throw error;
   }
 }

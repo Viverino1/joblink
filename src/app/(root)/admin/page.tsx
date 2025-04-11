@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Card, CardContent } from "@/components/ui/card";
 import { JobCard } from "@/components/job-card";
@@ -10,7 +10,8 @@ import { JobCardSkeleton } from "@/components/job-card-skeleton";
 import { UserChip } from "@/components/user-chip";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Mail, Plus, Search, Loader2 } from "lucide-react";
+import { Mail, Plus, Search, Loader2, Trash2, AlertCircle } from "lucide-react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import {
   Modal,
   ModalBody,
@@ -28,6 +29,12 @@ export default function Admin() {
   const [adminApprovals, setAdminApprovals] = useState<any[]>([]);
   const [userData, setUserData] = useState<Record<string, any>>({});
   const [selectedTab, setSelectedTab] = useState("pending");
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [addingAdmin, setAddingAdmin] = useState(false);
+  const [selectedAdmins, setSelectedAdmins] = useState<string[]>([]);
+  const [removingAdmins, setRemovingAdmins] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   // Add this new function to fetch user data
   const fetchUserData = async (userId: string) => {
@@ -185,6 +192,102 @@ export default function Admin() {
     }
   };
 
+  const handleAddAdmin = async () => {
+    if (!newAdminEmail) return;
+    
+    try {
+      setError(null);
+      setAddingAdmin(true);
+      const response = await fetch("/api/admin/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: newAdminEmail }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          setError("This email is not registered on the platform. Please invite the user to register first.");
+        } else {
+          setError("Failed to add admin. Please try again.");
+        }
+        return;
+      }
+
+      // Refresh admin list
+      await fetchAdminApprovals();
+      setNewAdminEmail("");
+      setError(null);
+      
+      // Close modal by clicking its parent
+      const modalElement = document.querySelector("[data-state='open']");
+      if (modalElement) {
+        const closeButton = modalElement.querySelector("button[aria-label='Close']");
+        if (closeButton) {
+          (closeButton as HTMLButtonElement).click();
+        }
+      }
+    } catch (error) {
+      console.error("Error adding admin:", error);
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setAddingAdmin(false);
+    }
+  };
+
+  const handleSelectAdmin = (approvalId: string, checked: boolean) => {
+    setSelectedAdmins(prev => 
+      checked 
+        ? [...prev, approvalId]
+        : prev.filter(id => id !== approvalId)
+    );
+  };
+
+  const handleRemoveSelected = async () => {
+    if (selectedAdmins.length === 0) return;
+
+    try {
+      setRemovingAdmins(true);
+      const response = await fetch("/api/admin/remove", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ approvalIds: selectedAdmins }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to remove admins");
+      }
+
+      // Refresh admin list and clear selection
+      await fetchAdminApprovals();
+      setSelectedAdmins([]);
+    } catch (error) {
+      console.error("Error removing admins:", error);
+    } finally {
+      setRemovingAdmins(false);
+    }
+  };
+
+  const filteredAdminApprovals = useMemo(() => {
+    if (!searchQuery.trim()) return adminApprovals;
+
+    const query = searchQuery.toLowerCase().trim();
+    return adminApprovals.filter(approval => {
+      const user = userData[approval.user_id];
+      if (!user) return false;
+
+      const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+      const email = user.email.toLowerCase();
+      
+      return fullName.includes(query) || email.includes(query);
+    });
+  }, [adminApprovals, userData, searchQuery]);
+
   if (loading) {
     return (
       <div className="container mx-auto mt-16 p-4">
@@ -330,29 +433,39 @@ export default function Admin() {
             <div className="flex items-center justify-between mb-4">
               <div className="relative w-72">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search admins..." className="pl-8" />
+                <Input 
+                  placeholder="Search admins..." 
+                  className="pl-8" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
               <div className="flex gap-2">
                 <Button
                   variant="destructive"
-                  size="default"
-                  className="px-4 gap-2.5"
+                  size="icon"
+                  className="h-10 w-10"
+                  onClick={handleRemoveSelected}
+                  disabled={removingAdmins || selectedAdmins.length === 0}
                 >
-                  Remove Selected
+                  {removingAdmins ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
                 </Button>
                 <Modal>
                   <ModalTrigger>
                     <Button
                       variant="default"
-                      size="default"
-                      className="px-4 gap-2.5"
+                      size="icon"
+                      className="h-10 w-10"
                     >
                       <Plus className="h-4 w-4" />
-                      Add Admin
                     </Button>
                   </ModalTrigger>
                   <ModalBody className="w-full max-w-md mx-auto h-auto">
-                    <ModalContent>
+                    <ModalContent className="bg-card">
                       <div className="space-y-3">
                         <h2 className="text-xl font-semibold">Add New Admin</h2>
                         <div className="space-y-2">
@@ -361,11 +474,30 @@ export default function Admin() {
                           </label>
                           <Input
                             placeholder="email@example.com"
-                            onChange={() => {}}
+                            value={newAdminEmail}
+                            onChange={(e) => setNewAdminEmail(e.target.value)}
                           />
                         </div>
-                        <Button className="w-full" onClick={() => {}}>
-                          Add Admin
+                        {error && (
+                          <Alert variant="destructive" className="mt-2">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>Error</AlertTitle>
+                            <AlertDescription>{error}</AlertDescription>
+                          </Alert>
+                        )}
+                        <Button 
+                          className="w-full" 
+                          onClick={handleAddAdmin}
+                          disabled={addingAdmin || !newAdminEmail}
+                        >
+                          {addingAdmin ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Adding...
+                            </>
+                          ) : (
+                            "Add Admin"
+                          )}
                         </Button>
                       </div>
                     </ModalContent>
@@ -376,7 +508,21 @@ export default function Admin() {
             <div className="rounded-md border">
               <div className="grid grid-cols-4 gap-4 p-3 border-b bg-muted/50">
                 <div className="flex items-center gap-4">
-                  <Checkbox className="h-4 w-4 rounded-sm data-[state=checked]:bg-primary data-[state=checked]:border-primary border-muted-foreground" />
+                  <Checkbox 
+                    className="h-4 w-4 rounded-sm data-[state=checked]:bg-primary data-[state=checked]:border-primary border-muted-foreground"
+                    checked={adminApprovals.length > 0 && selectedAdmins.length === adminApprovals.filter(a => a.user_id !== user?.id).length}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        // Select all except current user
+                        setSelectedAdmins(adminApprovals
+                          .filter(a => a.user_id !== user?.id)
+                          .map(a => a.id)
+                        );
+                      } else {
+                        setSelectedAdmins([]);
+                      }
+                    }}
+                  />
                   <div className="font-medium text-sm">User</div>
                 </div>
                 <div className="font-medium text-sm">Email</div>
@@ -384,19 +530,26 @@ export default function Admin() {
                 <div className="font-medium text-sm">Date of Expiry</div>
               </div>
 
-              {adminApprovals.length === 0 ? (
+              {filteredAdminApprovals.length === 0 ? (
                 <div className="p-3 text-center text-muted-foreground">
-                  No admin approvals found
+                  {searchQuery.trim() 
+                    ? "No matching admins found" 
+                    : "No admin approvals found"}
                 </div>
               ) : (
                 <div className="divide-y">
-                  {adminApprovals.map((approval: any) => (
+                  {filteredAdminApprovals.map((approval: any) => (
                     <div
                       key={approval.id}
                       className="grid grid-cols-4 gap-4 p-2 items-center"
                     >
                       <div className="flex items-center gap-4">
-                        <Checkbox className="h-4 w-4 ml-1 rounded-sm data-[state=checked]:bg-primary data-[state=checked]:border-primary border-muted-foreground" />
+                        <Checkbox 
+                          className="h-4 w-4 ml-1 rounded-sm data-[state=checked]:bg-primary data-[state=checked]:border-primary border-muted-foreground"
+                          checked={selectedAdmins.includes(approval.id)}
+                          onCheckedChange={(checked) => handleSelectAdmin(approval.id, checked as boolean)}
+                          disabled={approval.user_id === user?.id}
+                        />
                         {userData[approval.user_id] ? (
                           <UserChip
                             firstName={userData[approval.user_id].firstName}

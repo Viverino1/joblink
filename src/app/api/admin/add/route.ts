@@ -9,7 +9,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { email, approverId } = await request.json();
+    const { email } = await request.json();
     
     // Get user ID from email using Clerk
     const userResponse = await fetch(
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     const expiresAt = new Date();
     expiresAt.setFullYear(expiresAt.getFullYear() + 1); // Set expiry to 1 year from now
 
-    const approval = await createAdminApproval(newAdminId, approverId, expiresAt);
+    const approval = await createAdminApproval(newAdminId, userId, expiresAt);
     return NextResponse.json(approval);
   } catch (error) {
     console.error("Error adding admin:", error);
