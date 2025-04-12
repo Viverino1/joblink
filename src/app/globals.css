@@ -12,13 +12,13 @@
     --primary: 180 100% 42%;
     --primary-foreground: 0 0% 0%;
     --secondary: 180 10% 10%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary-foreground: 0 0% 93.3%;
     --muted: 180 10% 15%;
     --muted-foreground: 0 0% 63.9%;
     --accent: 180 10% 10%;
-    --accent-foreground: 0 0% 98%;
+    --accent-foreground: 0 0% 93.3%;
     --destructive: 0 62.8% 40.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 0 0% 93.3%;
     --border: 180 10% 15%;
     --input: 180 10% 15%;
     --ring: 180 100% 42%;
