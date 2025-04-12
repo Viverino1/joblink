@@ -24,7 +24,7 @@ const mont = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "JobLink",
+  title: "Gateway",
   description:
     "Find work from reputable opportunities approved by Lafayette High Scool.",
 };
@@ -44,7 +44,7 @@ export default function RootLayout({
             attribute="class"
             defaultTheme="dark"
             enableSystem={false}
-            storageKey="joblink-theme"
+            storageKey="gateway-theme"
             disableTransitionOnChange
           >
             <BookmarksProvider>{children}</BookmarksProvider>

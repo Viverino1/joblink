@@ -18,7 +18,7 @@ export default function Navbar() {
             <Button variant="ghost" className="p-1.5 md:pr-2.5">
               <Icon className="w-6 h-6" />
               <p className="font-mont font-bold text-lg mt-1 hidden md:block">
-                JobLink
+                Gateway
               </p>
             </Button>
           </Link>

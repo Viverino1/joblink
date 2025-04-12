@@ -317,7 +317,7 @@ export default function Admin() {
               <Button
                 className="mt-4"
                 onClick={() =>
-                  (window.location.href = `mailto:admin@joblink.com?subject=Admin Access Request&body=User ID: ${user?.id}`)
+                  (window.location.href = `mailto:admin@gateway.com?subject=Admin Access Request&body=User ID: ${user?.id}`)
                 }
               >
                 <Mail className="mr-2 h-4 w-4" />
