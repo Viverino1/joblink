@@ -25,6 +25,7 @@ export default function Navbar() {
 
           <div className="space-x-5 hidden md:block">
             <NavLink link="/browse">Browse</NavLink>
+            <NavLink link="/match">Match</NavLink>
             <NavLink link="/post">Post</NavLink>
             <NavLink link="/admin">Admin</NavLink>
           </div>
@@ -70,6 +71,7 @@ export default function Navbar() {
           onClick={() => setMenuIsOpen(!isMenuOpen)}
         />
         <NavLinkMobile link="/browse">Browse</NavLinkMobile>
+        <NavLinkMobile link="/match">Match</NavLinkMobile>
         <NavLinkMobile link="/post">Post</NavLinkMobile>
         <NavLinkMobile link="/admin">Admin</NavLinkMobile>
       </nav>

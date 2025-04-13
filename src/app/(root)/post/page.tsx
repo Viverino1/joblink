@@ -266,7 +266,10 @@ export default function PostPage() {
                     <FormItem>
                       <FormLabel>Job Type</FormLabel>
                       <FormControl>
-                        <select {...field}>
+                        <select
+                          {...field}
+                          className="w-full rounded-md border border-input bg-transparent px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+                        >
                           <option value="Intern">Intern</option>
                           <option value="Part-time">Part-time</option>
                         </select>
